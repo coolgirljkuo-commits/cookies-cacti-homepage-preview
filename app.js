@@ -8,7 +8,7 @@ const targets=document.getElementById('targets'),message=document.getElementById
 const reset=document.getElementById('reset'),fallback=document.getElementById('fallback-note');
 const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let model=null,phase='logo',ready=false,onscreen=true,last=0,raf=0;
-let gesture=null;const pointers=new Set(),buttons=[];
+let gesture=null,logoHoldRemaining=2000;const pointers=new Set(),buttons=[];
 // Nonvisual startup diagnostics, measured from navigation start. No stored data.
 const startup=window.CookieLoading || {images:{}};
 startup.appStarted=performance.now();
@@ -66,10 +66,13 @@ function frame(time){
  try{
   const dt=last?Math.min(100,time-last):0;last=time;
   if(phase==='logo'){
-   // measure() has already painted the complete scene behind the logo.
-   // Reveal on the next visible frame, with no extra post-readiness hold.
+   // Hold the ready logo for two visible seconds. Hidden/offscreen time
+   // does not consume the hold; physics stays paused until the reveal.
+   logoHoldRemaining=Math.max(0,logoHoldRemaining-dt);
+   if(logoHoldRemaining===0){
    phase='playing';stamp('firstPlayable');stamp('fadeStarted');root.dataset.phase='playing';
    logoLayer.setAttribute('aria-hidden','true');layer.inert=false;layer.setAttribute('aria-hidden','false');
+   }
   }else if(dt>0)model.frame(Math.min(33,dt));
   syncTargets();
   if(!(phase==='complete' && model.idle))raf=requestAnimationFrame(frame);
