@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homepage loading diagnostic</title><style>body{margin:0;color:#273b2c;font:14px system-ui}h1,p,pre{margin:16px}h1{font-size:20px}iframe{display:block;width:100%;height:420px;border:0}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>
+<h1>Homepage loading diagnostic</h1><p>Keep this page visible until Cookie appears. Unknown stages are shown as null, never guessed. These measurements stay on this device. Send a screenshot of the report if loading feels slow.</p>
+<iframe src="../" title="Cookie’s Cacti loading test"></iframe><pre id="report">Waiting for the scene…</pre>
+<script src="../loading-report.js"></script>
+<script>
+const frame=document.querySelector('iframe'),report=document.getElementById('report');
+let checks=0;
+const poll=setInterval(()=>{checks++;if(checks>=120)clearInterval(poll);
+ try{const raw=frame.contentDocument.querySelector('#experience')?.dataset.startup;if(!raw)return;
+  const child=JSON.parse(raw);
+  report.textContent=JSON.stringify({...CookieLoadingReport.summarize(child,performance.timeOrigin),child},null,2);
+  if(child.fadeFinished || checks>=120)clearInterval(poll);
+ }catch(error){report.textContent='Diagnostic cannot read this frame: '+error.message;clearInterval(poll)}
+ if(checks>=120)clearInterval(poll);
+},250);
+</script></body></html>
