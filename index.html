@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="color-scheme" content="light">
+ <title>Cookie’s Cacti — Tap a cactus!</title>
+ <link rel="preload" as="image" type="image/webp" href="assets/logo.webp" fetchpriority="high">
+ <link rel="stylesheet" href="style.css">
+ <link rel="preload" as="image" type="image/webp" href="assets/cookie/cookie_front.webp">
+ <link rel="preload" as="image" type="image/webp" href="assets/cookie/cookie_left.webp">
+ <link rel="preload" as="image" type="image/webp" href="assets/cookie/cookie_right.webp">
+ <script defer src="loading.js"></script>
+ <script defer src="vendor/matter.min.js"></script>
+ <script defer src="scene.js"></script>
+ <script defer src="app.js"></script>
+</head>
+<body>
+ <main id="experience" data-phase="logo" aria-label="Cookie’s Cacti interactive shelves">
+  <div id="logo-layer" class="logo-layer">
+   <picture><source srcset="assets/logo.webp" type="image/webp">
+   <img id="logo" elementtiming="brand-logo" src="assets/logo.png" width="1200" height="1171" alt="Cookie’s Cacti" fetchpriority="high" draggable="false"></picture>
+   <p id="fallback-note" hidden>Cookie’s taking a catnap. Please try again later.</p>
+   <noscript><p>Cookie’s Cacti — enable JavaScript to play.</p></noscript>
+  </div>
+  <section id="scene-layer" class="scene-layer" aria-hidden="true" inert>
+   <div id="stage" class="stage" aria-label="Cookie and eight cactus pots">
+    <canvas id="canvas" aria-hidden="true"></canvas>
+    <div id="targets" class="targets" aria-label="Cactus pots"></div>
+   </div>
+   <div class="message-area">
+    <p id="message" role="status" aria-live="polite">Tap a cactus!</p>
+    <div class="reset-slot"><button id="reset" type="button" hidden>Make another mess</button></div>
+   </div>
+  </section>
+ </main>
+</body>
+</html>

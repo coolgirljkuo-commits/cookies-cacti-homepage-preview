@@ -1,0 +1,25 @@
+*{box-sizing:border-box}
+:root{color-scheme:light;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#273b2c;background:white}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{display:grid;place-items:center}
+[hidden]{display:none!important}
+#experience{width:min(100%,640px);height:min(420px,100dvh);position:relative;isolation:isolate;background:#fff;overflow:hidden}
+.logo-layer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:1;transition:opacity .25s ease;pointer-events:none}
+.logo-layer picture{display:contents}
+.logo-layer img{display:block;max-width:calc(100% - 24px);max-height:calc(100% - 32px);width:400px;height:auto;object-fit:contain}
+.logo-layer p{margin:0 16px;text-align:center;font-size:13px;line-height:1.4}
+.scene-layer{height:100%;display:grid;grid-template-rows:minmax(0,1fr) 88px;visibility:hidden;opacity:0;transition:opacity .25s ease}
+[data-phase="playing"] .logo-layer,[data-phase="complete"] .logo-layer{opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s .25s}
+[data-phase="playing"] .scene-layer,[data-phase="complete"] .scene-layer{visibility:visible;opacity:1}
+.stage{position:relative;min-height:0;overflow:hidden;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+.targets{position:absolute;inset:0;pointer-events:none}
+.pot-target{position:absolute;padding:0;border:0;border-radius:12px;background:transparent;pointer-events:none;color:transparent}
+.pot-target:focus-visible{outline:3px solid #49653b;outline-offset:-2px;background:#ffffff35}
+.message-area{display:grid;grid-template-rows:24px 44px;gap:8px;justify-items:center;align-content:center;padding:6px 12px;background:#fff}
+#message{margin:0;font-size:16px;line-height:24px;font-weight:650;text-align:center}
+.reset-slot{height:44px}
+#reset{min-height:44px;padding:10px 20px;border:1.5px solid #49653b;border-radius:10px;background:#f5e8b5;color:#273b2c;font:650 14px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+#reset:hover{background:#fff0c6}
+#reset:focus-visible{outline:3px solid #49653b;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.logo-layer,.scene-layer{transition:none!important}}
