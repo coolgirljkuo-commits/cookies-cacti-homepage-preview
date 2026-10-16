@@ -34,7 +34,7 @@ if(dramaticFinish){
 const revealDuration=transition==='flip'?800:700;
 root.dataset.transition=transition;
 let model=null,phase='logo',ready=false,onscreen=true,last=0,raf=0;
-let inactivity=0,quiet=0;
+let inactivity=0,quiet=0,promptHoldRemaining=null,promptStarted=false;
 root.dataset.promptDismissed='false';
 let gesture=null,logoHoldRemaining=2000,fadeElapsed=0;const pointers=new Set(),buttons=[];
 // Nonvisual startup diagnostics, measured from navigation start. No stored data.
@@ -62,10 +62,12 @@ function beginReveal(){
 }
 function finishReturn(){
  if(phase!=='returning')return;
+ cancelInstructionHold();
  phase='idleLogo';root.dataset.phase=phase;logoWake.hidden=false;logoWake.disabled=false;
  if(layer.contains(document.activeElement))logoWake.focus({preventScroll:true});
 }
 function returnToLogo(){
+ cancelInstructionHold();
  phase='returning';fadeElapsed=0;root.dataset.phase=phase;
  layer.inert=true;layer.setAttribute('aria-hidden','true');logoLayer.setAttribute('aria-hidden','false');
  if(motion.matches)finishReturn();
@@ -76,6 +78,7 @@ logoWake.addEventListener('click',()=>{
  beginReveal();resume();}catch(error){fail(error)}
 });
 function fail(error){
+ cancelInstructionHold();
  phase='failed';ready=false;cancelAnimationFrame(raf);raf=0;gesture=null;pointers.clear();
  logoWake.hidden=true;logoWake.disabled=true;
  root.dataset.phase='failed';layer.inert=true;layer.setAttribute('aria-hidden','true');
@@ -147,6 +150,11 @@ function frame(time){
    fadeElapsed+=dt;if(motion.matches || fadeElapsed>=revealDuration){if(phase==='fading')finishReveal();else finishReturn();}
   }else if(phase==='playing' || phase==='complete'){
    if(dt>0)model.frame(Math.min(33,dt));
+   // Reuse the visible-frame clock: no background timeout or stale callback.
+   if(phase==='playing' && promptHoldRemaining!==null){
+    promptHoldRemaining=Math.max(0,promptHoldRemaining-dt);
+    if(promptHoldRemaining===0){cancelInstructionHold();root.dataset.promptDismissed='true';message.setAttribute('aria-hidden','true');}
+   }
    if(idleReturn){
     inactivity+=dt;quiet=model.settled?quiet+dt:0;
     if(inactivity>=30000 && quiet>=800)returnToLogo();
@@ -156,12 +164,14 @@ function frame(time){
   if(phase!=='idleLogo' && !(!idleReturn && phase==='complete' && model.idle))raf=requestAnimationFrame(frame);
  }catch(error){fail(error)}
 }
+function cancelInstructionHold(){promptHoldRemaining=null;}
 function restoreInstruction(){
+ cancelInstructionHold();promptStarted=false;
  root.dataset.promptDismissed='false';message.hidden=false;message.setAttribute('aria-hidden','false');
 }
 function requestAttack(index){
  if(phase!=='playing' || document.hidden || !onscreen || !model)return;
- try{if(model.attack(index)){inactivity=0;quiet=0;root.dataset.promptDismissed='true';message.setAttribute('aria-hidden','true');}resume()}catch(error){fail(error)}
+ try{if(model.attack(index)){inactivity=0;quiet=0;if(!promptStarted){promptStarted=true;promptHoldRemaining=2000;}}resume()}catch(error){fail(error)}
 }
 stage.addEventListener('pointerdown',event=>{
  if(event.button!==undefined && event.button!==0)return;
@@ -218,7 +228,7 @@ async function boot(){
   stamp('assetsReady');
   stamp('sceneSetupStarted');
   model=window.CookieHomepage.createScene(window.Matter,sprites,canvas,{layout:layoutId,reducedMotion:motion.matches,onClear(){
-   phase='complete';root.dataset.phase='complete';message.hidden=true;completionMessage.hidden=false;reset.hidden=false;
+   cancelInstructionHold();phase='complete';root.dataset.phase='complete';message.hidden=true;completionMessage.hidden=false;reset.hidden=false;
    if(targets.contains(document.activeElement))reset.focus({preventScroll:true});
   }});
   stamp('sceneSetupFinished');
