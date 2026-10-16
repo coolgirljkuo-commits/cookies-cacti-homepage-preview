@@ -35,6 +35,7 @@ const revealDuration=transition==='flip'?800:700;
 root.dataset.transition=transition;
 let model=null,phase='logo',ready=false,onscreen=true,last=0,raf=0;
 let inactivity=0,quiet=0;
+root.dataset.promptDismissed='false';
 let gesture=null,logoHoldRemaining=2000,fadeElapsed=0;const pointers=new Set(),buttons=[];
 // Nonvisual startup diagnostics, measured from navigation start. No stored data.
 const startup=window.CookieLoading || {images:{}};
@@ -71,7 +72,7 @@ function returnToLogo(){
 }
 logoWake.addEventListener('click',()=>{
  if(phase!=='idleLogo' || document.hidden || !onscreen)return;
- try{model.reset();inactivity=0;quiet=0;message.hidden=false;completionMessage.hidden=true;reset.hidden=true;
+ try{model.reset();inactivity=0;quiet=0;restoreInstruction();completionMessage.hidden=true;reset.hidden=true;
  beginReveal();resume();}catch(error){fail(error)}
 });
 function fail(error){
@@ -155,9 +156,12 @@ function frame(time){
   if(phase!=='idleLogo' && !(!idleReturn && phase==='complete' && model.idle))raf=requestAnimationFrame(frame);
  }catch(error){fail(error)}
 }
+function restoreInstruction(){
+ root.dataset.promptDismissed='false';message.hidden=false;message.setAttribute('aria-hidden','false');
+}
 function requestAttack(index){
  if(phase!=='playing' || document.hidden || !onscreen || !model)return;
- try{if(model.attack(index)){inactivity=0;quiet=0;}resume()}catch(error){fail(error)}
+ try{if(model.attack(index)){inactivity=0;quiet=0;root.dataset.promptDismissed='true';message.setAttribute('aria-hidden','true');}resume()}catch(error){fail(error)}
 }
 stage.addEventListener('pointerdown',event=>{
  if(event.button!==undefined && event.button!==0)return;
@@ -185,7 +189,7 @@ window.addEventListener('blur',()=>{gesture=null;pointers.clear()});
 reset.addEventListener('click',()=>{
  if(phase!=='complete' || !model)return;
  try{gesture=null;pointers.clear();model.reset();inactivity=0;quiet=0;phase='playing';root.dataset.phase='playing';
-  message.hidden=false;completionMessage.hidden=true;reset.hidden=true;syncTargets();resume();}
+  restoreInstruction();completionMessage.hidden=true;reset.hidden=true;syncTargets();resume();}
  catch(error){fail(error)}
 });
 document.addEventListener('visibilitychange',()=>{
