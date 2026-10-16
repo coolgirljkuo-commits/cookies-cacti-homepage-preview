@@ -1,25 +1,84 @@
 *{box-sizing:border-box}
-:root{color-scheme:light;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#273b2c;background:white}
+:root{color-scheme:light;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#435c49;background:white}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
 body{display:grid;place-items:center}
 [hidden]{display:none!important}
 #experience{width:min(100%,640px);height:100%;position:relative;isolation:isolate;background:#fff;overflow:hidden}
-.logo-layer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:1;transition:opacity .25s ease;pointer-events:none}
+.logo-layer,.scene-layer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;transition:opacity .7s ease-in-out}
+.logo-layer{z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:1;pointer-events:none}
 .logo-layer picture{display:contents}
-.logo-layer img{display:block;max-width:calc(100% - 24px);max-height:calc(100% - 32px);width:400px;height:auto;object-fit:contain}
+.logo-layer img{display:block;max-width:calc(100% - 24px);max-height:calc(100% - 24px);width:400px;height:auto;object-fit:contain}
 .logo-layer p{margin:0 16px;text-align:center;font-size:13px;line-height:1.4}
-.scene-layer{height:100%;display:grid;grid-template-rows:minmax(0,1fr) 76px;visibility:hidden;opacity:0;transition:opacity .25s ease}
-[data-phase="playing"] .logo-layer,[data-phase="complete"] .logo-layer{opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s .25s}
-[data-phase="playing"] .scene-layer,[data-phase="complete"] .scene-layer{visibility:visible;opacity:1}
-.stage{position:relative;min-height:0;overflow:hidden;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+[data-phase="failed"] .logo-layer{opacity:1;visibility:visible;transition:none}
+.scene-layer{visibility:hidden;opacity:0;border-radius:18px;overflow:hidden;isolation:isolate}
+[data-phase="fading"] .logo-layer,[data-phase="playing"] .logo-layer,[data-phase="complete"] .logo-layer{opacity:0}
+[data-phase="playing"] .logo-layer,[data-phase="complete"] .logo-layer{visibility:hidden}
+[data-phase="fading"] .scene-layer,[data-phase="playing"] .scene-layer,[data-phase="complete"] .scene-layer{visibility:visible;opacity:1}
+.stage{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 canvas{display:block;width:100%;height:100%}
 .targets{position:absolute;inset:0;pointer-events:none}
 .pot-target{position:absolute;padding:0;border:0;border-radius:12px;background:transparent;pointer-events:none;color:transparent}
 .pot-target:focus-visible{outline:3px solid #49653b;outline-offset:-2px;background:#ffffff35}
-.message-area{display:grid;grid-template-rows:24px 44px;gap:0px;justify-items:center;align-content:center;padding:4px 12px;background:#fff}
-#message{margin:0;font-size:16px;line-height:24px;font-weight:650;text-align:center}
-.reset-slot{height:44px}
-#reset{min-height:44px;padding:10px 20px;border:1.5px solid #49653b;border-radius:10px;background:#f5e8b5;color:#273b2c;font:650 14px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+.message-area{position:absolute;left:8px;right:8px;bottom:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:28px;padding:2px 8px;border-radius:12px;background:transparent;color:#435c49;pointer-events:none}
+#message{margin:0;font-size:14px;line-height:20px;font-weight:500;letter-spacing:.02em;text-align:center}
+[data-phase="complete"] .message-area{bottom:4px;padding:2px 8px}
+.completion-message{position:absolute;left:12px;right:12px;top:12px;margin:0;text-align:center;color:#435c49;font:500 16px/24px system-ui,sans-serif;letter-spacing:.02em;pointer-events:none}
+.reset-slot{display:none}
+[data-phase="complete"] .reset-slot{display:block;height:44px}
+#reset{height:44px;min-height:44px;padding:8px 16px;border:1px solid #70866b;border-radius:10px;background:#f5e8b5;color:#435c49;font:500 14px system-ui,sans-serif;cursor:pointer;touch-action:manipulation;pointer-events:auto}
 #reset:hover{background:#fff0c6}
-#reset:focus-visible{outline:3px solid #49653b;outline-offset:3px}
+#reset:focus-visible{outline:3px solid #49653b;outline-offset:1px}
 @media(prefers-reduced-motion:reduce){.logo-layer,.scene-layer{transition:none!important}}
+
+/* Default fade keeps its original layout; only flip gets a rigid 3D parent. */
+.flip-card{display:contents}
+#experience[data-transition="flip"]{perspective:1200px}
+[data-transition="flip"] .flip-card{display:block;position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%) rotateY(0deg);transform-origin:center;transform-style:preserve-3d;transition:none}
+/* Faces never animate independently, including during initial JS setup. */
+[data-transition="flip"] .logo-layer,[data-transition="flip"] .scene-layer{backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center;transition:none;opacity:1;z-index:auto}
+[data-transition="flip"] .logo-layer{transform:translate(-50%,-50%) rotateY(0deg)}
+[data-transition="flip"] .scene-layer{visibility:visible;transform:translate(-50%,-50%) rotateY(180deg)}
+[data-transition="flip"][data-phase="fading"] .flip-card{transform:translate(-50%,-50%) rotateY(180deg);transition:transform .8s cubic-bezier(.45,0,.2,1)}
+[data-transition="flip"][data-phase="playing"] .flip-card,[data-transition="flip"][data-phase="complete"] .flip-card{transform:translate(-50%,-50%) rotateY(180deg)}
+[data-transition="flip"][data-phase="failed"] .flip-card{transform:translate(-50%,-50%);transition:none}
+[data-transition="flip"][data-phase="failed"] .scene-layer{visibility:hidden}
+@media(prefers-reduced-motion:reduce){
+ #experience[data-transition="flip"]{perspective:none}
+ [data-transition="flip"] .flip-card{transform-style:flat}
+ [data-transition="flip"] .flip-card,[data-transition="flip"][data-phase="fading"] .flip-card,[data-transition="flip"][data-phase="playing"] .flip-card,[data-transition="flip"][data-phase="complete"] .flip-card,[data-transition="flip"] .logo-layer,[data-transition="flip"] .scene-layer{transform:translate(-50%,-50%);transition:none!important}
+ [data-transition="flip"][data-phase="logo"] .scene-layer{visibility:hidden}
+}
+
+/* Opt-in typography comparison. This face is fetched only when selected. */
+@font-face{font-family:"Cookie Rounded";src:url("assets/fonts/fredoka-latin-500-normal.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+[data-type="rounded"] #message,[data-type="rounded"] #reset,[data-type="rounded"] .completion-message{font-family:"Cookie Rounded",system-ui,sans-serif;font-weight:500;letter-spacing:.01em}
+[data-type="rounded"] .completion-message{font-size:19px;line-height:26px;top:calc(19% - 13px)}
+
+/* Reversible dramatic finish; the normal page and rounded comparison stay intact. */
+.replay-icon{display:none;flex:none;pointer-events:none}
+@font-face{font-family:"Cookie Poster";src:url("assets/fonts/anton-latin-400-normal.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+[data-finish="dramatic"] .completion-message{top:10px;left:12px;right:12px;height:calc(var(--scene-height) * .38 - 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-family:"Cookie Poster",Impact,"Arial Narrow",sans-serif;font-size:clamp(28px,calc(var(--scene-width) * .13),84px);font-weight:400;line-height:.95;letter-spacing:.015em}
+[data-finish="dramatic"] #completion-line1,[data-finish="dramatic"] #completion-line2{display:block;white-space:nowrap}
+[data-finish="dramatic"] #completion-line2{font-size:1.28em;line-height:.95;letter-spacing:.04em}
+[data-finish="dramatic"] #reset{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid #49653b;background:#f0ca6e;box-shadow:0 4px 0 #49653b;transition:transform 80ms ease,box-shadow 80ms ease}
+[data-finish="dramatic"] #reset .replay-icon{display:block}
+[data-finish="dramatic"] #reset:hover{background:#f6d782}
+[data-finish="dramatic"] #reset:active{transform:translateY(3px);box-shadow:0 1px 0 #49653b}
+[data-finish="dramatic"] #reset:focus-visible{outline:3px solid #435c49;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){[data-finish="dramatic"] #reset{transition:none}}
+
+/* If the local poster font is unavailable, keep every letter inside the frame. */
+[data-finish="dramatic"][data-poster="fallback"] .completion-message{font-family:"Cookie Rounded",system-ui,sans-serif;font-size:clamp(22px,calc(var(--scene-width) * .095),60px);font-weight:500;letter-spacing:0}
+
+/* Opt-in idle return: the same rigid card rotates back, with no new backdrop. */
+[data-phase="returning"] .logo-layer,[data-phase="idleLogo"] .logo-layer{opacity:1;visibility:visible}
+[data-phase="returning"] .scene-layer{visibility:visible;opacity:0}
+[data-phase="idleLogo"] .scene-layer{visibility:hidden;opacity:0}
+[data-transition="flip"][data-phase="returning"] .flip-card{transform:translate(-50%,-50%) rotateY(0deg);transition:transform .8s cubic-bezier(.45,0,.2,1)}
+[data-transition="flip"][data-phase="returning"] .scene-layer{opacity:1}
+#logo-wake{position:absolute;inset:0;border:0;border-radius:18px;background:transparent;cursor:pointer;pointer-events:auto;touch-action:pan-y pinch-zoom}
+#logo-wake:focus-visible{outline:3px solid #49653b;outline-offset:-5px}
+@media(prefers-reduced-motion:reduce){
+ [data-transition="flip"][data-phase="returning"] .flip-card,[data-transition="flip"][data-phase="idleLogo"] .flip-card{transform:translate(-50%,-50%);transition:none!important}
+ [data-transition="flip"][data-phase="returning"] .scene-layer{visibility:hidden}
+}

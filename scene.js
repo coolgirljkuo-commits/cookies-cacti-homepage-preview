@@ -19,10 +19,15 @@ const layout={shelves:[{y:.38,ranges:[[.06,.86]]},{y:.76,ranges:[[.08,.96]]}],
  pots:[{level:0,x:.16,spec:0},{level:0,x:.30,spec:2},{level:0,x:.60,spec:1},{level:0,x:.75,spec:4},
  {level:1,x:.37,spec:3},{level:1,x:.505,spec:1,color:'#dda48a'},{level:1,x:.65,spec:2,color:'#c28c76'},{level:1,x:.91,spec:0,color:'#b97861'}],
  start:{level:1,x:.17}};
+// Reversible content-only experiment: same pots, lower shelf, and Cookie start.
+const splitLayout={...layout,
+ shelves:[{y:.38,ranges:[[.08,.43],[.57,.96]]},layout.shelves[1]],
+ pots:layout.pots.map((pot,i)=>i<4?{...pot,x:[.17,.34,.66,.84][i]}:pot)};
 const colors={yellow:'#f5e8b5',blue:'#dbe3f1',pink:'#ead8da',sage:'#e4eadb',
  green:'#91aa7a',greenLight:'#a9bd93',dark:'#49653b',soil:'#6d6550',
  potEdge:'#8b5e50',potLip:'#e0aa91',shelf:'#c7a18a',shelfEdge:'#806859'};
 function createScene(Matter,cookieSprites,canvas,options={}){
+ const content=options.layout==='split'?splitLayout:layout;
  const {Engine,Bodies,Body,Composite,Sleeping,Events,Query}=Matter;
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas is unavailable');
  const width=WIDTH,height=HEIGHT,scale=SCALE,engine=Engine.create({enableSleeping:true});
@@ -45,18 +50,18 @@ function createScene(Matter,cookieSprites,canvas,options={}){
  function reset(){
   Composite.clear(engine.world,false);Engine.clear(engine);
   cleared=new Set();complete=false;now=0;action=null;queuedPots=[];impact=null;facing=1;
-  shelves=layout.shelves.map(({y:fraction,ranges})=>{
+  shelves=content.shelves.map(({y:fraction,ranges})=>{
    const y=height*fraction;
    const parts=ranges.map(([left,right])=>Bodies.rectangle(width*(left+right)/2,y,width*(right-left),10*scale,
     {isStatic:true,friction:.78,restitution:.04}));
    Composite.add(engine.world,parts);
    return {position:{y},bounds:{min:{x:width*ranges[0][0],y:y-5*scale},max:{x:width*ranges.at(-1)[1],y:y+5*scale}},parts};
   });
-  cookieShelf=layout.start.level;
-  cookie=Bodies.circle(width*layout.start.x,shelves[cookieShelf].bounds.min.y-23*scale,23*scale,
+  cookieShelf=content.start.level;
+  cookie=Bodies.circle(width*content.start.x,shelves[cookieShelf].bounds.min.y-23*scale,23*scale,
     {label:'cookie',isStatic:true,collisionFilter:{mask:0}});Composite.add(engine.world,cookie);
   pots=[];plants=[];
-  layout.pots.forEach((item,i)=>{
+  content.pots.forEach((item,i)=>{
    const s=specs[item.spec],r=50*scale*s.r,h=40*scale*s.h;
    const x=width*item.x,y=shelves[item.level].bounds.min.y-h/2;
    const properties={density:s.m*.0007,friction:.72,restitution:.08,label:'pot'};
@@ -617,6 +622,8 @@ function createScene(Matter,cookieSprites,canvas,options={}){
  return {resize,frame,draw,reset,attack,pick,targetRects,
   setReducedMotion(value){reducedMotion=!!value;draw()},
   get idle(){return complete && !action},
+  // Read-only quiet check: never wake, move, or change the physics bodies.
+  get settled(){return !action && !queuedPots.length && pots.every(body=>cleared.has(body) || body.isSleeping || (Math.hypot(body.velocity.x,body.velocity.y)<.08 && Math.abs(body.angularVelocity)<.008))},
   get complete(){return complete},
   // Internal scene inspection supports deterministic tests; never shown to visitors.
   inspect(){return {engine,pots,cookie,shelves,action,cleared,camera:{...camera},width,height,viewWidth,viewHeight,scale,now,queued:queuedPots.length}},
