@@ -625,6 +625,8 @@ function createScene(Matter,cookieSprites,canvas,options={}){
   // Read-only quiet check: never wake, move, or change the physics bodies.
   get settled(){return !action && !queuedPots.length && pots.every(body=>cleared.has(body) || body.isSleeping || (Math.hypot(body.velocity.x,body.velocity.y)<.08 && Math.abs(body.angularVelocity)<.008))},
   get complete(){return complete},
+  // Presentation-only anchor midway from the actual lower shelf edge to the scene edge.
+  get replayCenterY(){return (Math.max(...shelves.flatMap(level=>level.parts.map(body=>body.bounds.max.y)))+height)/2},
   // Internal scene inspection supports deterministic tests; never shown to visitors.
   inspect(){return {engine,pots,cookie,shelves,action,cleared,camera:{...camera},width,height,viewWidth,viewHeight,scale,now,queued:queuedPots.length}},
   destroy(){Events.off(engine);Composite.clear(engine.world,false);Engine.clear(engine)}

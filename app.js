@@ -121,6 +121,7 @@ function measure(){
    Object.assign(visual.style,{width:width+'px',height:height+'px'});
    visual.style.setProperty('--scene-width',width+'px');
    visual.style.setProperty('--scene-height',height+'px');
+   visual.style.setProperty('--replay-center-y',model.replayCenterY*zoom+'px');
   }
   model.resize(width,height,window.devicePixelRatio || 1);syncTargets();
  }
